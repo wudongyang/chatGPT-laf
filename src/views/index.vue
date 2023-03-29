@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { Cloud } from "laf-client-sdk";
-import wx from "../../public/wx.png";
+// import wx from "../../public/wx.png";
 // 将marked 引入
 import { marked } from "marked";
 import { User } from "@element-plus/icons-vue";
@@ -9,8 +9,9 @@ import QrcodeVue from "qrcode.vue";
 import { ElMessage } from "element-plus";
 
 const cloud = new Cloud({
-  baseUrl: "https://jyf6wk.laf.dev",
-  getAccessToken: () => localStorage.getItem("access_token"),
+  baseUrl: "https://pvuwfz.laf.dev",
+  // getAccessToken: () => localStorage.getItem("access_token"),
+  getAccessToken: () => "",
   timeout: 60000,
 });
 
@@ -112,41 +113,45 @@ function countDown() {
 
 //验证登录
 async function login() {
-  const res = await cloud.invoke("login", { phone: phone.value, code: code.value });
-  console.log(res);
-  if (res.code === 1) {
-    localStorage.setItem("access_token", res.data.access_token);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
-    success();
-    centerDialogVisible2.value = false;
-    getAmount();
-  } else {
-    ElMessage({
-      message: "无效的验证码",
-      type: "error",
-    });
-  }
+
+  localStorage.setItem("access_token", 'access_token');
+  localStorage.setItem("user", 'user');
+
+  // const res = await cloud.invoke("login", { phone: phone.value, code: code.value });
+  // console.log(res);
+  // if (res.code === 1) {
+  //   localStorage.setItem("access_token", res.data.access_token);
+  //   localStorage.setItem("user", JSON.stringify(res.data.user));
+  //   success();
+  //   centerDialogVisible2.value = false;
+  //   getAmount();
+  // } else {
+  //   ElMessage({
+  //     message: "无效的验证码",
+  //     type: "error",
+  //   });
+  // }
 }
 
 //发送消息
 async function send() {
-  //发送时验证登录
-  if (localStorage.getItem("access_token") == null)
-    return ElMessage({
-      message: "请先登录！",
-      type: "error",
-    });
-  //判断用户次数
-  if (amount.value <= 0)
-    return ElMessage({
-      message: "您的剩余次数不足，请充值！",
-      type: "error",
-    });
+  // //发送时验证登录
+  // if (localStorage.getItem("access_token") == null)
+  //   return ElMessage({
+  //     message: "请先登录！",
+  //     type: "error",
+  //   });
+  // //判断用户次数
+  // if (amount.value <= 0)
+  //   return ElMessage({
+  //     message: "您的剩余次数不足，请充值！",
+  //     type: "error",
+  //   });
   //判断是否回复
   if (loading.value) return;
   list.value.push({
     text: question.value,
-    avatar: "/avatar.jpeg",
+    avatar: "/avatar.png",
   });
   //定位页面位置
   setScreen();
@@ -158,7 +163,7 @@ async function send() {
     loading.value = false;
     list.value.push({
       text: "问题不能为空！",
-      avatar: "/logo.jpg",
+      avatar: "/logo.png",
     });
     setScreen();
     return;
@@ -177,7 +182,7 @@ async function send() {
     loading.value = false;
     list.value.push({
       text: "出错了，请重试！",
-      avatar: "/logo.jpg",
+      avatar: "/logo.png",
     });
     setScreen();
     return;
@@ -189,7 +194,7 @@ async function send() {
 
   list.value.push({
     text: res.text,
-    avatar: "/logo.jpg",
+    avatar: "/logo.png",
   });
 
   loading.value = false;
@@ -261,194 +266,43 @@ const success = () => {
   });
 };
 
-//判断是否登录
-function judge() {
-  const access_token = localStorage.getItem("access_token");
-  if (access_token)
-    return ElMessage({
-      message: "您已经登录过了",
-      type: "success",
-    });
-  centerDialogVisible2.value = true;
-}
+// //判断是否登录
+// function judge() {
+//   const access_token = localStorage.getItem("access_token");
+//   if (access_token)
+//     return ElMessage({
+//       message: "您已经登录过了",
+//       type: "success",
+//     });
+//   centerDialogVisible2.value = true;
+// }
 
-//登录后可点击充值
-function judgeUp() {
-  if (!localStorage.getItem("access_token"))
-    return ElMessage({
-      message: "请登录",
-      type: "error",
-    });
-  centerDialogVisible.value = true;
-}
+// //登录后可点击充值
+// function judgeUp() {
+//   if (!localStorage.getItem("access_token"))
+//     return ElMessage({
+//       message: "请登录",
+//       type: "error",
+//     });
+//   centerDialogVisible.value = true;
+// }
 </script>
 
 <template>
   <div class="page">
-    <!-- 头部 -->
-    <el-row class="head">
-      <div class="amount">剩余{{ amount }}</div>
-      <div>
-        <el-col :span="24">
-          <!-- ------------------------------------------ -->
-          <el-popover placement="bottom" :width="300" trigger="click">
-            <el-image style="width: 100%; height: 100%" :src="wx" />
-            <template #reference>
-              <el-button class="m-2">交流群</el-button>
-            </template>
-          </el-popover>
-          <!-- ------------------------------------------ -->
-
-          <el-button @click="judgeUp">充值</el-button>
-          <!-- ------------------------------------------ -->
-
-          <el-button @click="judge">
-            <el-icon style="vertical-align: middle">
-              <User />
-            </el-icon>
-            <span style="vertical-align: middle">登录</span>
-          </el-button>
-          <!-- ------------------------------------------ -->
-        </el-col>
-      </div>
-    </el-row>
-
-    <!-- 占位 -->
-    <div style="height: 52px"></div>
-
-    <!-- 充值弹出框 -->
-    <el-dialog v-model="centerDialogVisible" title="充值" width="50%" height="50%" center>
-      <div class="cardbox">
-        <!-- --------------------------------------------------------------- -->
-        <el-card @click="select(0)" :class="indexUp === 0 ? 'box-card' : 'boxCard'">
-          <div class="useNumber">400次</div>
-          <div class="money">
-            <span class="sign">￥</span>
-            <span class="number">20</span>
-          </div>
-        </el-card>
-
-        <!-- --------------------------------------------------------------- -->
-
-        <el-card
-          @click="select(1)"
-          :class="indexUp === 1 ? 'box-card' : 'boxCard'"
-          class="box-card"
-        >
-          <div class="useNumber">1千次</div>
-          <div class="money">
-            <span class="sign">￥</span>
-            <span class="number">50</span>
-          </div>
-        </el-card>
-
-        <el-card
-          @click="select(2)"
-          :class="indexUp === 2 ? 'box-card' : 'boxCard'"
-          class="box-card"
-        >
-          <div class="useNumber">2万次</div>
-          <div class="money">
-            <span class="sign">￥</span>
-            <span class="number">1000</span>
-          </div>
-        </el-card>
-      </div>
-      <!-- ----------------------------------------------------- -->
-      <div class="cheerbox">
-        <el-button @click="openCode" class="cheer" type="warning">充值</el-button>
-      </div>
-      <template #footer> </template>
-    </el-dialog>
-
-    <!-- 二维码弹出框 -->
-    <el-dialog v-model="upCode" width="50%" height="50%" center>
-      <div class="qrcode">
-        <qrcode-vue :value="codeUrl" :size="300" level="H" />
-        <div class="qrcodeText">微信扫码支付</div>
-      </div>
-      <template #footer> </template>
-    </el-dialog>
-
-    <!-- 登录弹出框 -->
-    <el-dialog v-model="centerDialogVisible2" title="登录" center>
-      <el-alert
-        @close="close"
-        v-show="err"
-        title="请输入正确的手机号码"
-        type="error"
-        center
-        show-icon
-      />
-      <div style="height: 200px">
-        <!-- ----------------------------------------------------- -->
-        <div class="accountbox">
-          <div class="inputname">手机号：</div>
-          <el-input
-            class="elinput"
-            size="small"
-            type="number"
-            v-model="phone"
-            placeholder="请输入手机号"
-          />
-        </div>
-
-        <!-- ----------------------------------------------------- -->
-
-        <div class="accountbox">
-          <div class="inputname">验证码：</div>
-          <el-input
-            class="elinputcode"
-            size="small"
-            v-model="code"
-            placeholder="请输入验证码"
-          />
-        </div>
-        <!-- ----------------------------------------------------- -->
-
-        <div class="loginbutbox">
-          <el-button
-            @click="getCode"
-            type="primary"
-            style="margin-top: 10px"
-            class="loginbut"
-            >{{ content }}</el-button
-          >
-        </div>
-        <div class="loginbutbox">
-          <el-button @click="login" class="loginbut">登录</el-button>
-        </div>
-      </div>
-      <template #footer> </template>
-    </el-dialog>
 
     <!-- ------------------------------------------------------------ -->
     <div v-show="!list.length" class="begintitle">
-      <h1 style="font-family: Cursive; font-size: 50px">Laf Ai</h1>
+      <h1 style="font-family: Cursive; font-size: 50px">ChatGPT by Laf</h1>
 
       <div style="margin-top: 80px; text-indent: 20px">
-        如果想寻求合作或深度交流，可
+        使用 laf.dev 构建的网站，参考来源
         <a
           style="color: #ff0405"
-          href="https://x85clg-wenjuan.site.laf.dev/#/pages/form/index?id=6412c9980ac642ce124ad116"
+          href="https://icloudnative.io/posts/build-chatgpt-web-using-laf"
           target="_blank"
           >点击</a
         >
-        留下信息<span v-if="isMobile === true">!</span>
-        <span v-if="isMobile === false">，我们顾问会第一时间联系您!</span>
-      </div>
-
-      <div style="margin-top: 10px">商务洽谈:18629359689</div>
-
-      <div class="lafText" v-if="isMobile === false">
-        <div style="text-align: center">
-          <a href="https://docs.sealos.io/zh-Hans/" style="color: #ff0405">Sealos</a>
-          <span> 开源云操作系统， </span>
-          <a href="https://laf.dev/" style="color: #ff0405">Laf</a>
-          <span> 开源函数计算平台 </span>
-        </div>
-        <div>快速交付分布式应用、小时级搭建个性化云系统、分钟级构建中间件服务</div>
-        <div>使用公有云IaaS的可降本50%，基于Sealos自建私有云可降本80%！</div>
       </div>
     </div>
 
@@ -460,7 +314,7 @@ function judgeUp() {
       </div>
 
       <div v-show="loading" class="answerList">
-        <img class="listImg" src="/logo.jpg" alt="" />
+        <img class="listImg" src="/logo.png" alt="" />
         <img class="addin" src="/loading.gif" alt="" />
       </div>
     </div>
